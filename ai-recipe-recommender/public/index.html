@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>AI Recipe Recommender</title>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Recipe Recommender</h1>
+        <form id="ingredients-form">
+            <label for="ingredients">Enter ingredients (comma-separated):</label>
+            <input type="text" id="ingredients" placeholder="e.g., chicken, tomato, spices">
+            <button type="submit">Get Recipes</button>
+        </form>
+        <div id="results"></div>
+    </div>
+    <script>
+        document.getElementById('ingredients-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ingredientsInput = document.getElementById('ingredients').value;
+            const ingredients = ingredientsInput.split(',').map(i => i.trim());
+            
+            const response = await fetch('/api/recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ingredients }),
+            });
+            const data = await response.json();
+            
+            const resultsDiv = document.getElementById('results');
+            if (data.recommendations && data.recommendations.length > 0) {
+                resultsDiv.innerHTML = '<h2>Recommended Recipes:</h2>' + 
+                data.recommendations.map(r => `
+                    <div>
+                        <h3>${r.name}</h3>
+                        <img src="${r.image}" alt="${r.name}" style="max-width: 300px;" />
+                        <p><strong>Ingredients:</strong> ${r.ingredients.join(', ')}</p>
+                        <h4>Instructions:</h4>
+                        <ol>
+                            ${r.instructions.map(step => `<li>${step}</li>`).join('')}
+                        </ol>
+                    </div>
+                `).join('');
+            } else {
+                resultsDiv.innerHTML = '<p>No recipes found for the given ingredients.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
